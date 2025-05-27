@@ -20,16 +20,7 @@ public class RegistroParqueo {
         this.horaSalida = LocalDateTime.now();
     }
 
-    public long calcularHoras() {
-        if (horaSalida == null) return 0;
-        Duration duracion = Duration.between(horaIngreso, horaSalida);
-        long minutos = duracion.toMinutes();
-        return (minutos + 59) / 60;
-    }
 
-    public double calcularMonto() {
-        return calcularHoras() * tarifaPorHora;
-    }
 
     public Vehiculo getVehiculo() { return vehiculo; }
     public LocalDateTime getHoraIngreso() { return horaIngreso; }
@@ -37,9 +28,7 @@ public class RegistroParqueo {
 
     @Override
     public String toString() {
-        return "Vehículo: " + vehiculo.getPlaca() +
-               ", Ingreso: " + horaIngreso +
-               ", Salida: " + (horaSalida != null ? horaSalida : "Aún en parqueo") +
-               ", Total: $" + (horaSalida != null ? calcularMonto() : 0);
+        return "Vehículo: " + vehiculo.getPlaca();
+
     }
 }

@@ -36,16 +36,6 @@ public class Membresia {
         return fechaFin;
     }
 
-    public boolean estaActiva() {
-        LocalDate hoy = LocalDate.now();
-        return (hoy.isEqual(fechaInicio) || hoy.isAfter(fechaInicio)) && hoy.isBefore(fechaFin.plusDays(1));
-    }
-
-    public boolean proximaAVencer() {
-        LocalDate hoy = LocalDate.now();
-        return estaActiva() && !hoy.plusDays(5).isBefore(fechaFin);
-    }
-
     @Override
     public String toString() {
         return "Membresía: " + tipo + " | Inicio: " + fechaInicio + " | Fin: " + fechaFin;
