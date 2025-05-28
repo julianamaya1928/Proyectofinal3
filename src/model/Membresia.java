@@ -8,22 +8,31 @@ public class Membresia {
         MENSUAL, TRIMESTRAL, ANUAL
     }
 
-    private Cliente cliente;
     private Tipo tipo;
     private LocalDate fechaInicio;
-    private LocalDate fechaFin;
+    private LocalDate fechaVencimiento;
+    private double costo;
 
-    public Membresia(Cliente cliente, Tipo tipo, LocalDate fechaInicio, LocalDate fechaFin) {
-        this.cliente = cliente;
+    public Membresia(Tipo tipo) {
         this.tipo = tipo;
-        this.fechaInicio = fechaInicio;
-        this.fechaFin = fechaFin;
+        this.fechaInicio = LocalDate.now();
+        switch (tipo) {
+            case MENSUAL:
+                this.fechaVencimiento = fechaInicio.plusMonths(1);
+                this.costo = 50000;  // ejemplo de costo
+                break;
+            case TRIMESTRAL:
+                this.fechaVencimiento = fechaInicio.plusMonths(3);
+                this.costo = 140000;
+                break;
+            case ANUAL:
+                this.fechaVencimiento = fechaInicio.plusYears(1);
+                this.costo = 500000;
+                break;
+        }
     }
 
-    public Cliente getCliente() {
-        return cliente;
-    }
-
+    // GETTERS
     public Tipo getTipo() {
         return tipo;
     }
@@ -32,13 +41,16 @@ public class Membresia {
         return fechaInicio;
     }
 
-    public LocalDate getFechaFin() {
-        return fechaFin;
+    public LocalDate getFechaVencimiento() {
+        return fechaVencimiento;
     }
 
-    @Override
-    public String toString() {
-        return "Membresía: " + tipo + " | Inicio: " + fechaInicio + " | Fin: " + fechaFin;
+    public double getCosto() {
+        return costo;
+    }
+
+    // NUEVO MÉTODO para Main: verifica si la membresía está activa
+    public boolean estaActiva() {
+        return fechaVencimiento.isAfter(LocalDate.now()) || fechaVencimiento.isEqual(LocalDate.now());
     }
 }
-
