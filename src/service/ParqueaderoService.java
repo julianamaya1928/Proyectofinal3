@@ -1,177 +1,189 @@
 package service;
 
-import model.Cliente;
-import model.Vehiculo;
-import model.RegistroParqueo;
-import model.Moto;
-import model.Automovil;
-import model.Camion;
-import model.Membresia;
+import model.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ParqueaderoService {
 
-    private ArrayList<Cliente> clientes;
-    private ArrayList<Vehiculo> vehiculos;
-    private ArrayList<RegistroParqueo> registros;
-    private ArrayList<Membresia> membresias;
+    private List<Cliente> clientes = new ArrayList<>();
+    private List<Vehiculo> vehiculos = new ArrayList<>();
+    private List<RegistroParqueo> registros = new ArrayList<>();
+    private List<Pago> pagos = new ArrayList<>();
+    private final int capacidadMaxima = 50;
 
-    private Map<String, Double> tarifasPorTipoVehiculo;
-
-    // Capacidades máximas
-    private int capacidadMotos = 10;
-    private int capacidadAutomoviles = 20;
-    private int capacidadCamiones = 5;
-
-    // Espacios ocupados
-    private int ocupadosMotos = 0;
-    private int ocupadosAutomoviles = 0;
-    private int ocupadosCamiones = 0;
-
-    public ParqueaderoService() {
-        clientes = new ArrayList<>();
-        vehiculos = new ArrayList<>();
-        registros = new ArrayList<>();
-        membresias = new ArrayList<>();
-        tarifasPorTipoVehiculo = new HashMap<>();
-
-        tarifasPorTipoVehiculo.put("Moto", 1500.0);
-        tarifasPorTipoVehiculo.put("Automovil", 3000.0);
-        tarifasPorTipoVehiculo.put("Camion", 5000.0);
-    }
-
-    // Métodos de clientes y vehículos
-    
+    // Registrar cliente
     public void registrarCliente(Cliente cliente) {
         clientes.add(cliente);
     }
 
-    public Cliente buscarClientePorCedula(String cedula) {
-        for (Cliente cliente : clientes) {
-            if (cliente.getCedula().equalsIgnoreCase(cedula)) {
-                return cliente;
-            }
-        }
-        return null;
-    }
-
-    public void modificarCliente(Scanner scanner) {
-        System.out.print("Ingrese la cédula del cliente a modificar: ");
-        String cedula = scanner.nextLine();
-
-        Cliente cliente = buscarClientePorCedula(cedula);
-        if (cliente == null) {
-            System.out.println("❌ Cliente no encontrado.");
-            return;
-        }
-
-        int opcion;
-        do {
-            System.out.println("\n--- Modificar Cliente ---");
-            System.out.println("1. Modificar nombre");
-            System.out.println("2. Modificar cédula");
-            System.out.println("3. Modificar teléfono");
-            System.out.println("4. Modificar correo");
-            System.out.println("0. Salir");
-            System.out.print("Seleccione una opción: ");
-            opcion = scanner.nextInt();
-            scanner.nextLine(); // limpiar buffer
-
-            switch (opcion) {
-                case 1:
-                    System.out.print("Nuevo nombre: ");
-                    cliente.setNombre(scanner.nextLine());
-                    System.out.println("✅ Nombre actualizado.");
-                    break;
-                case 2:
-                    System.out.print("Nueva cédula: ");
-                    cliente.setCedula(scanner.nextLine());
-                    System.out.println("✅ Cédula actualizada.");
-                    break;
-                case 3:
-                    System.out.print("Nuevo teléfono: ");
-                    cliente.setTelefono(scanner.nextLine());
-                    System.out.println("✅ Teléfono actualizado.");
-                    break;
-                case 4:
-                    System.out.print("Nuevo correo: ");
-                    cliente.setCorreo(scanner.nextLine());
-                    System.out.println("✅ Correo actualizado.");
-                    break;
-                case 0:
-                    System.out.println("Saliendo de la modificación...");
-                    break;
-                default:
-                    System.out.println("❌ Opción inválida.");
-            }
-        } while (opcion != 0);
-    }
-
+    // Registrar vehículo
     public void registrarVehiculo(Vehiculo vehiculo) {
         vehiculos.add(vehiculo);
-        vehiculo.getCliente().agregarVehiculo(vehiculo);
     }
 
+    // Buscar cliente por cédula
+    public Cliente buscarClientePorCedula(String cedula) {
+        return clientes.stream()
+                .filter(c -> c.getCedula().equals(cedula))
+                .findFirst().orElse(null);
+    }
+
+    // Buscar vehículo por placa
     public Vehiculo buscarVehiculoPorPlaca(String placa) {
-        for (Vehiculo v : vehiculos) {
-            if (v.getPlaca().equalsIgnoreCase(placa)) {
-                return v;
-            }
-        }
-        return null;
+        return vehiculos.stream()
+                .filter(v -> v.getPlaca().equalsIgnoreCase(placa))
+                .findFirst().orElse(null);
     }
 
-    public void modificarVehiculo(Scanner scanner) {
-        System.out.print("Ingrese la placa del vehículo a modificar: ");
-        String placa = scanner.nextLine();
-
-        Vehiculo vehiculo = buscarVehiculoPorPlaca(placa);
-
+    // Registrar ingreso dado un vehículo
+    public void registrarIngreso(Vehiculo vehiculo) {
         if (vehiculo != null) {
-            System.out.println("Vehículo encontrado: " + vehiculo);
-
-            System.out.print("Nuevo color (actual: " + vehiculo.getColor() + "): ");
-            String nuevoColor = scanner.nextLine();
-
-            System.out.print("Nuevo modelo (actual: " + vehiculo.getModelo() + "): ");
-            String nuevoModelo = scanner.nextLine();
-
-            vehiculo.setColor(nuevoColor);
-            vehiculo.setModelo(nuevoModelo);
-
-            System.out.println("Vehículo modificado correctamente:");
-            System.out.println(vehiculo);
-            System.out.println("✅ El vehículo ha sido modificado exitosamente.");
-        } else {
-            System.out.println("❌ Vehículo no encontrado.");
+            registros.add(new RegistroParqueo(vehiculo));
         }
     }
 
-    public void mostrarClientes() {
-        if (clientes.isEmpty()) {
-            System.out.println("No hay clientes registrados.");
+    // Registrar ingreso dado placa (para uso desde Main)
+    public void registrarIngreso(String placa) {
+        Vehiculo vehiculo = buscarVehiculoPorPlaca(placa);
+        if (vehiculo != null) {
+            registrarIngreso(vehiculo);
+            System.out.println("Ingreso registrado para vehículo con placa: " + placa);
         } else {
-            for (Cliente c : clientes) {
-                System.out.println(c);
-            }
+            System.out.println("Vehículo no encontrado para placa: " + placa);
         }
     }
 
-    public void mostrarVehiculos() {
-        if (vehiculos.isEmpty()) {
-            System.out.println("No hay vehículos registrados.");
+    // Registrar salida por placa y crear pago temporal
+    public void registrarSalida(String placa) {
+        RegistroParqueo registro = registros.stream()
+                .filter(r -> r.getVehiculo().getPlaca().equalsIgnoreCase(placa) && r.getHoraSalida() == null)
+                .findFirst().orElse(null);
+
+        if (registro != null) {
+            registro.registrarSalida();
+            double monto = new Factura(registro).getMonto();
+            pagos.add(new Pago(Pago.Tipo.TEMPORAL, LocalDateTime.now(), monto));
+            System.out.println("Salida registrada para vehículo con placa: " + placa + ", monto: $" + monto);
         } else {
-            for (Vehiculo v : vehiculos) {
-                System.out.println(v);
-            }
+            System.out.println("No se encontró ingreso activo para la placa: " + placa);
         }
+    }
+
+    // Obtener todos los registros de parqueo
+    public List<RegistroParqueo> getRegistrosParqueo() {
+        return registros;
+    }
+
+    // Obtener cupos disponibles
+    public int getCuposDisponibles() {
+        long ocupados = registros.stream()
+                .filter(r -> r.getHoraSalida() == null)
+                .count();
+        return capacidadMaxima - (int) ocupados;
+    }
+
+    // Ingresar vehículo temporal (sin cliente)
+    public void ingresarVehiculoTemporal(String placa, String tipo, String color, String modelo) {
+        Vehiculo vehiculo;
+        switch (tipo.toLowerCase()) {
+            case "moto" -> vehiculo = new Moto(placa, color, modelo, null);
+            case "camion" -> vehiculo = new Camion(placa, color, modelo, null);
+            default -> vehiculo = new Automovil(placa, color, modelo, null);
+        }
+        registrarIngreso(vehiculo);
+    }
+
+    // Registrar membresía para cliente
+    public void registrarMembresia(String cedula, Membresia.Tipo tipo) {
+        Cliente cliente = buscarClientePorCedula(cedula);
+        if (cliente != null) {
+            Membresia membresia = new Membresia(tipo);
+            cliente.setMembresia(membresia);
+            pagos.add(new Pago(Pago.Tipo.MEMBRESIA, LocalDateTime.now(), membresia.getCosto()));
+            System.out.println("Membresía registrada para cliente: " + cedula);
+        } else {
+            System.out.println("Cliente no encontrado para cédula: " + cedula);
+        }
+    }
+
+    // Validar si cliente tiene membresía activa
+    public boolean membresiaActiva(String cedula) {
+        Cliente cliente = buscarClientePorCedula(cedula);
+        if (cliente != null && cliente.getMembresia() != null) {
+            return !cliente.getMembresia().getFechaVencimiento().isBefore(LocalDate.now());
+        }
+        return false;
+    }
+
+    // Obtener lista clientes
+    public List<Cliente> getClientes() {
+        return clientes;
+    }
+
+    // Obtener lista vehículos
+    public List<Vehiculo> getVehiculos() {
+        return vehiculos;
+    }
+
+    // Obtener lista pagos por tipo
+    public List<Pago> getPagosPorTipo(Pago.Tipo tipo) {
+        return pagos.stream()
+                .filter(p -> p.getTipo() == tipo)
+                .collect(Collectors.toList());
+    }
+
+    // Registrar pago por membresía manualmente
+    public void registrarPagoMembresia(String cedula, double monto) {
+        Cliente cliente = buscarClientePorCedula(cedula);
+        if (cliente != null) {
+            pagos.add(new Pago(Pago.Tipo.MEMBRESIA, LocalDateTime.now(), monto));
+            System.out.println("Pago de membresía registrado para cliente: " + cedula + ", monto: $" + monto);
+        } else {
+            System.out.println("Cliente no encontrado para cédula: " + cedula);
+        }
+    }
+
+    // Calcular ingresos por tipo y periodo
+    public double calcularIngresosPorTipoYPeriodo(Pago.Tipo tipo, LocalDate inicio, LocalDate fin) {
+        return pagos.stream()
+                .filter(p -> p.getTipo() == tipo)
+                .filter(p -> {
+                    LocalDate fechaPago = p.getFechaPago().toLocalDate();
+                    return (fechaPago.isEqual(inicio) || fechaPago.isAfter(inicio)) &&
+                           (fechaPago.isEqual(fin) || fechaPago.isBefore(fin));
+                })
+                .mapToDouble(Pago::getMonto)
+                .sum();
+    }
+
+    // Calcular ingresos totales (todos los pagos)
+    public double calcularIngresosTotales() {
+        return pagos.stream()
+                .mapToDouble(Pago::getMonto)
+                .sum();
+    }
+
+    // Obtener historial de vehículos por cliente
+    public List<RegistroParqueo> getHistorialVehiculosPorCliente(String cedula) {
+        return registros.stream()
+                .filter(r -> r.getVehiculo().getPropietario() != null)
+                .filter(r -> r.getVehiculo().getPropietario().getCedula().equals(cedula))
+                .collect(Collectors.toList());
+    }
+
+    // Obtener clientes con membresías por vencer en X días
+    public List<Cliente> clientesConMembresiasPorVencer(int dias) {
+        LocalDate limite = LocalDate.now().plusDays(dias);
+        return clientes.stream()
+                .filter(c -> c.getMembresia() != null)
+                .filter(c -> {
+                    LocalDate vencimiento = c.getMembresia().getFechaVencimiento();
+                    return vencimiento.isAfter(LocalDate.now()) && vencimiento.isBefore(limite);
+                })
+                .collect(Collectors.toList());
     }
 }
-
-    
